@@ -1,7 +1,7 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchRecipes, fetchSaved, saveRecipe, unsaveRecipe, deleteRecipe, selectRecipeById, selectSaved, selectStatus } from '../redux/recipesSlice';
+import { fetchRecipes, fetchSaved, saveRecipe, unsaveRecipe, deleteRecipe, selectRecipeById, selectSaved, selectStatus, selectSavedStatus } from '../redux/recipesSlice';
 import { useAuth } from '../context/AuthContext';
 
 const RecipeDetailPage = () => {
@@ -9,26 +9,32 @@ const RecipeDetailPage = () => {
   const dispatch  = useDispatch();
   const navigate  = useNavigate();
   const { user }  = useAuth();
-  const recipe    = useSelector(selectRecipeById(id));
-  const saved     = useSelector(selectSaved);
-  const status    = useSelector(selectStatus);
+  const recipe      = useSelector(selectRecipeById(id));
+  const saved       = useSelector(selectSaved);
+  const status      = useSelector(selectStatus);
+  const savedStatus = useSelector(selectSavedStatus);
 
   useEffect(() => {
-    if (status === 'idle') dispatch(fetchRecipes());
-  }, [dispatch, status]);
+    if (status === 'idle')      dispatch(fetchRecipes());
+    if (savedStatus === 'idle') dispatch(fetchSaved(user.id));
+  }, [dispatch, user.id, status, savedStatus]);
 
-  useEffect(() => {
-    dispatch(fetchSaved(user.id));
-  }, [dispatch, user.id]);
+  const [isSaving, setIsSaving] = useState(false);
 
   if (!recipe) return <p className="loading-text">Loading...</p>;
 
-  const savedEntry = saved.find(s => s.recipeId === id && s.userId === user.id);
+  const savedEntry = saved.find(s => String(s.recipeId) === String(id) && String(s.userId) === String(user.id));
   const isSaved    = !!savedEntry;
 
-  const handleSave = () => {
-    if (isSaved) dispatch(unsaveRecipe(savedEntry.id));
-    else         dispatch(saveRecipe({ userId: user.id, recipeId: id }));
+  const handleSave = async () => {
+    if (isSaving) return;
+    setIsSaving(true);
+    try {
+      if (isSaved) await dispatch(unsaveRecipe(savedEntry.id));
+      else         await dispatch(saveRecipe({ userId: user.id, recipeId: id }));
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleDelete = async () => {
@@ -45,8 +51,8 @@ const RecipeDetailPage = () => {
       <p className="detail-meta"><strong>Cook time:</strong> {recipe.cookTime} &nbsp;|&nbsp; <strong>Servings:</strong> {recipe.servings}</p>
 
       <div className="detail-actions">
-        <button className="btn-secondary" onClick={handleSave}>
-          {isSaved ? 'Remove from Cookbook' : 'Save to Cookbook'}
+        <button className="btn-secondary" onClick={handleSave} disabled={isSaving}>
+          {isSaving ? 'Saving...' : isSaved ? 'Remove from Cookbook' : 'Save to Cookbook'}
         </button>
         {recipe.addedBy === user.id && (
           <button className="btn-danger" onClick={handleDelete}>Delete Recipe</button>

@@ -1,27 +1,42 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchRecipes, fetchSaved, selectAllRecipes, selectStatus } from '../redux/recipesSlice';
+import {
+  advanceFeaturedRecipe,
+  fetchRecipes,
+  fetchSaved,
+  selectAllRecipes,
+  selectFeaturedRecipe,
+  selectSavedStatus,
+  selectStatus,
+} from '../redux/recipesSlice';
 import { useAuth } from '../context/AuthContext';
 import RecipeRow from '../components/RecipeRow';
 
 const CATEGORIES = ['Italian', 'Asian', 'Desserts', 'Quick Meals'];
 
 const HomePage = () => {
-  const dispatch = useDispatch();
-  const { user }  = useAuth();
-  const recipes   = useSelector(selectAllRecipes);
-  const status    = useSelector(selectStatus);
+  const dispatch    = useDispatch();
+  const { user }    = useAuth();
+  const recipes     = useSelector(selectAllRecipes);
+  const featured    = useSelector(selectFeaturedRecipe);
+  const status      = useSelector(selectStatus);
+  const savedStatus = useSelector(selectSavedStatus);
   const [search, setSearch] = useState('');
 
   useEffect(() => {
-    if (status === 'idle') dispatch(fetchRecipes());
-  }, [dispatch, status]);
+    if (status === 'idle')      dispatch(fetchRecipes());
+    if (savedStatus === 'idle') dispatch(fetchSaved(user.id));
+  }, [dispatch, user.id, status, savedStatus]);
 
   useEffect(() => {
-    dispatch(fetchSaved(user.id));
-  }, [dispatch, user.id]);
+    if (recipes.length < 2) return undefined;
 
-  const featured = recipes.find(r => r.featured);
+    const intervalId = setInterval(() => {
+      dispatch(advanceFeaturedRecipe());
+    }, 5000);
+
+    return () => clearInterval(intervalId);
+  }, [dispatch, recipes.length]);
 
   const filtered = search
     ? recipes.filter(r => r.title.toLowerCase().includes(search.toLowerCase()))
