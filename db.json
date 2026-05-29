@@ -1,0 +1,15 @@
+{
+  "users": [
+    { "id": "1", "name": "Janice", "email": "janice@email.com", "password": "password123" },
+    { "id": "2", "name": "Spencer", "email": "spencer@email.com", "password": "password123" }
+  ],
+  "recipes": [
+    { "id": "1", "title": "Spaghetti Carbonara", "category": "Italian", "description": "A classic Roman pasta dish made with eggs, cheese, pancetta and pepper.", "cookTime": "30 mins", "servings": 2, "ingredients": ["200g spaghetti", "100g pancetta", "2 eggs", "50g parmesan", "black pepper"], "steps": ["Cook spaghetti.", "Fry pancetta.", "Mix eggs and cheese.", "Combine all ingredients off heat."], "featured": true, "addedBy": "1" },
+    { "id": "2", "title": "Chicken Tikka Masala", "category": "Asian", "description": "Tender chicken in a rich, creamy tomato-based curry sauce.", "cookTime": "45 mins", "servings": 4, "ingredients": ["500g chicken", "1 cup yogurt", "tikka masala paste", "400ml cream", "tomatoes"], "steps": ["Marinate chicken.", "Grill chicken.", "Make sauce.", "Combine and simmer."], "featured": false, "addedBy": "1" },
+    { "id": "3", "title": "Chocolate Lava Cake", "category": "Desserts", "description": "Warm chocolate cake with a gooey molten centre.", "cookTime": "20 mins", "servings": 2, "ingredients": ["100g dark chocolate", "100g butter", "2 eggs", "60g sugar", "30g flour"], "steps": ["Melt chocolate and butter.", "Mix in eggs and sugar.", "Add flour.", "Bake at 200C for 12 mins."], "featured": false, "addedBy": "2" },
+    { "id": "4", "title": "Avocado Toast", "category": "Quick Meals", "description": "Simple and healthy breakfast with smashed avocado on toasted bread.", "cookTime": "10 mins", "servings": 1, "ingredients": ["2 slices bread", "1 avocado", "lemon juice", "salt", "chilli flakes"], "steps": ["Toast the bread.", "Smash avocado with lemon and salt.", "Spread on toast.", "Top with chilli flakes."], "featured": false, "addedBy": "2" },
+    { "id": "5", "title": "Margherita Pizza", "category": "Italian", "description": "Classic Italian pizza with tomato sauce, mozzarella and fresh basil.", "cookTime": "25 mins", "servings": 2, "ingredients": ["pizza dough", "tomato sauce", "mozzarella", "fresh basil", "olive oil"], "steps": ["Roll out dough.", "Spread tomato sauce.", "Add mozzarella.", "Bake at 230C for 12 mins.", "Top with basil."], "featured": false, "addedBy": "1" },
+    { "id": "6", "title": "Pad Thai", "category": "Asian", "description": "Stir-fried rice noodles with egg, tofu, and peanuts.", "cookTime": "20 mins", "servings": 2, "ingredients": ["rice noodles", "2 eggs", "tofu", "bean sprouts", "peanuts", "pad thai sauce"], "steps": ["Soak noodles.", "Stir-fry tofu.", "Add eggs and noodles.", "Toss with sauce.", "Top with peanuts."], "featured": false, "addedBy": "2" }
+  ],
+  "saved": []
+}
