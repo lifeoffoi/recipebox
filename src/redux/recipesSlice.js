@@ -31,21 +31,24 @@ export const unsaveRecipe = createAsyncThunk('recipes/unsave', async (savedId) =
   return savedId;
 });
 
+const initialState = {
+  items: [],
+  saved: [],
+  featuredIndex: 0,
+  status: 'idle',
+  savedStatus: 'idle',
+  error: null,
+};
+
 const recipesSlice = createSlice({
   name: 'recipes',
-  initialState: {
-    items: [],
-    saved: [],
-    featuredIndex: 0,
-    status: 'idle',
-    savedStatus: 'idle',
-    error: null,
-  },
+  initialState,
   reducers: {
     advanceFeaturedRecipe: (state) => {
       if (state.items.length === 0) return;
       state.featuredIndex = (state.featuredIndex + 1) % state.items.length;
     },
+    resetRecipesState: () => initialState,
   },
   extraReducers: (builder) => {
     builder
@@ -66,7 +69,7 @@ const recipesSlice = createSlice({
   },
 });
 
-export const { advanceFeaturedRecipe } = recipesSlice.actions;
+export const { advanceFeaturedRecipe, resetRecipesState } = recipesSlice.actions;
 
 export default recipesSlice.reducer;
 
