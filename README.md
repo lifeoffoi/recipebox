@@ -1,70 +1,391 @@
-# Getting Started with Create React App
+# RecipeBox — React Exam Prep Reference
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A recipe discovery app built with Create React App, Redux Toolkit, Context API, and React Router.
+Mirrors the professor's movies-app patterns applied to a new domain.
 
-## Available Scripts
+---
 
-In the project directory, you can run:
+## Table of Contents
 
-### `npm start`
+1. [How to Run](#how-to-run)
+2. [Project Structure](#project-structure)
+3. [Test Accounts](#test-accounts)
+4. [Context API + useReducer (Auth)](#context-api--usereducer-auth)
+5. [Redux — createSlice + createAsyncThunk](#redux--createslice--createasyncthunk)
+6. [useSelector + useDispatch in a Component](#useselector--usedispatch-in-a-component)
+7. [React Router — PrivateRoute + PublicRoute with Outlet](#react-router--privateroute--publicroute-with-outlet)
+8. [Selectors](#selectors)
+9. [Controlled Forms](#controlled-forms)
+10. [useEffect Patterns](#useeffect-patterns)
+11. [Conditional Rendering](#conditional-rendering)
+12. [Key Files Quick Reference](#key-files-quick-reference)
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+---
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## How to Run
 
-### `npm test`
+```bash
+# Terminal 1 — API
+npm run api       # json-server on port 3001
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+# Terminal 2 — App
+npm start         # React app on port 3000
+```
 
-### `npm run build`
+---
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Project Structure
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+```
+src/
+  context/
+    AuthContext.js      # Context API + useReducer — login, register, logout
+  redux/
+    store.js            # configureStore
+    recipesSlice.js     # createSlice, createAsyncThunk, selectors
+  components/
+    Navbar.js           # useAuth + useNavigate
+    RecipeCard.js       # Clickable card, useNavigate to detail page
+    RecipeRow.js        # Horizontal scroll row per category (like movies-app Row)
+    PrivateRoute.js     # Outlet — redirects to /login if not logged in
+    PublicRoute.js      # Outlet — redirects to / if already logged in
+  pages/
+    LoginPage.js        # Controlled form, calls login() from context
+    RegisterPage.js     # Controlled form, calls register() from context
+    HomePage.js         # Hero banner + category rows + search
+    RecipeDetailPage.js # useParams, save/unsave, delete, ingredients, steps
+    AddRecipePage.js    # Controlled form, dispatches addRecipe thunk
+    SavedPage.js        # Filters Redux state to show only saved recipes
+    NotFoundPage.js     # Catch-all 404 page
+  utils/
+    axios.js            # Axios instance with baseURL
+db.json                 # Mock database — users, recipes, saved
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+---
 
-### `npm run eject`
+## Test Accounts
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+| Email | Password |
+|---|---|
+| janice@email.com | password123 |
+| spencer@email.com | password123 |
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+---
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## Context API + useReducer (Auth)
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+This is the professor's pattern from movies-app — Context for auth, Redux for data.
 
-## Learn More
+```js
+// 1. Reducer — handles state transitions
+function authReducer(state, action) {
+  switch (action.type) {
+    case 'LOADING':
+      return { ...state, status: 'loading', error: null };
+    case 'LOGIN':
+      localStorage.setItem('rb_user', JSON.stringify(action.payload));
+      return { ...state, user: action.payload, status: 'succeeded' };
+    case 'LOGOUT':
+      localStorage.removeItem('rb_user');
+      return { ...state, user: null, status: 'idle' };
+    case 'ERROR':
+      return { ...state, status: 'failed', error: action.payload };
+    default:
+      return state;
+  }
+}
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+// 2. Provider — wraps the app, exposes login/register/logout functions
+export const AuthProvider = ({ children }) => {
+  const [state, dispatch] = useReducer(authReducer, initialState);
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+  const login = async (email, password) => {
+    dispatch({ type: 'LOADING' });
+    try {
+      const res = await api.get(`/users?email=${email}&password=${password}`);
+      if (res.data.length === 0) throw new Error('Invalid email or password');
+      dispatch({ type: 'LOGIN', payload: res.data[0] });
+      return true;
+    } catch (err) {
+      dispatch({ type: 'ERROR', payload: err.message });
+      return false;
+    }
+  };
 
-### Code Splitting
+  const logout = () => dispatch({ type: 'LOGOUT' });
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+  return (
+    <AuthContext.Provider value={{ ...state, login, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
 
-### Analyzing the Bundle Size
+// 3. Custom hook — consume context anywhere
+export const useAuth = () => useContext(AuthContext);
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+// 4. Usage in a component
+const { user, login, logout, status, error } = useAuth();
+```
 
-### Making a Progressive Web App
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+## Redux — createSlice + createAsyncThunk
 
-### Advanced Configuration
+```js
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+// Async thunk — handles API call, auto-dispatches pending/fulfilled/rejected
+export const fetchRecipes = createAsyncThunk('recipes/fetchAll', async () => {
+  const res = await api.get('/recipes');
+  return res.data; // becomes action.payload in fulfilled
+});
 
-### Deployment
+export const addRecipe = createAsyncThunk('recipes/add', async (recipe) => {
+  const res = await api.post('/recipes', recipe);
+  return res.data;
+});
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+const recipesSlice = createSlice({
+  name: 'recipes',
+  initialState: { items: [], saved: [], status: 'idle', error: null },
+  reducers: {}, // sync actions go here
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchRecipes.pending,   (state) => { state.status = 'loading'; })
+      .addCase(fetchRecipes.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.items  = action.payload;
+      })
+      .addCase(fetchRecipes.rejected,  (state, action) => {
+        state.status = 'failed';
+        state.error  = action.error.message;
+      })
+      .addCase(addRecipe.fulfilled, (state, action) => {
+        state.items.push(action.payload);
+      });
+  },
+});
 
-### `npm run build` fails to minify
+export default recipesSlice.reducer;
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Store setup:
+```js
+import { configureStore } from '@reduxjs/toolkit';
+import recipesReducer from './recipesSlice';
+
+export const store = configureStore({
+  reducer: { recipes: recipesReducer },
+});
+```
+
+Provider in index.js / App.js:
+```jsx
+<Provider store={store}>
+  <App />
+</Provider>
+```
+
+---
+
+## useSelector + useDispatch in a Component
+
+```jsx
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchRecipes, selectAllRecipes, selectStatus } from '../redux/recipesSlice';
+
+const HomePage = () => {
+  const dispatch = useDispatch();
+  const recipes  = useSelector(selectAllRecipes); // reads from Redux state
+  const status   = useSelector(selectStatus);
+
+  useEffect(() => {
+    if (status === 'idle') dispatch(fetchRecipes()); // only fetch if not already loaded
+  }, [dispatch, status]);
+};
+```
+
+---
+
+## React Router — PrivateRoute + PublicRoute with Outlet
+
+**App.js — route setup:**
+```jsx
+<BrowserRouter>
+  <Navbar />
+  <Routes>
+    <Route element={<PublicRoute />}>
+      <Route path="/login"    element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
+    </Route>
+
+    <Route element={<PrivateRoute />}>
+      <Route path="/"           element={<HomePage />} />
+      <Route path="/recipe/:id" element={<RecipeDetailPage />} />
+    </Route>
+
+    <Route path="*" element={<NotFoundPage />} />
+  </Routes>
+</BrowserRouter>
+```
+
+**PrivateRoute.js:**
+```jsx
+import { Navigate, Outlet } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+
+const PrivateRoute = () => {
+  const { user } = useAuth();
+  return user ? <Outlet /> : <Navigate to="/login" replace />;
+};
+```
+
+**PublicRoute.js:**
+```jsx
+const PublicRoute = () => {
+  const { user } = useAuth();
+  return user ? <Navigate to="/" replace /> : <Outlet />;
+};
+```
+
+**useNavigate and useParams:**
+```jsx
+const navigate = useNavigate();
+navigate('/');                 // go to home
+navigate(`/recipe/${id}`);    // go to detail page
+
+const { id } = useParams();   // read :id from the URL
+```
+
+---
+
+## Selectors
+
+Defined in the slice, used with useSelector:
+
+```js
+// Simple selectors — plain functions
+export const selectAllRecipes = (state) => state.recipes.items;
+export const selectSaved      = (state) => state.recipes.saved;
+export const selectStatus     = (state) => state.recipes.status;
+
+// Factory selector — returns a function (used when you need a parameter)
+export const selectRecipeById = (id) => (state) =>
+  state.recipes.items.find(r => r.id === id);
+
+// Usage
+const recipes = useSelector(selectAllRecipes);
+const recipe  = useSelector(selectRecipeById(id));
+```
+
+---
+
+## Controlled Forms
+
+Every input is driven by state. onChange updates state on every keystroke.
+
+```jsx
+const [form, setForm] = useState({ title: '', category: 'Italian', description: '' });
+
+// Generic field updater — avoids writing a separate handler for every field
+const field = (key) => (e) => setForm(f => ({ ...f, [key]: e.target.value }));
+
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  await dispatch(addRecipe({ ...form, addedBy: user.id }));
+  navigate('/');
+};
+
+<form onSubmit={handleSubmit}>
+  <input value={form.title} onChange={field('title')} required />
+  <select value={form.category} onChange={field('category')}>
+    <option value="Italian">Italian</option>
+    <option value="Asian">Asian</option>
+  </select>
+  <button type="submit">Add Recipe</button>
+</form>
+```
+
+---
+
+## useEffect Patterns
+
+**Fetch once on mount (when status is idle):**
+```jsx
+useEffect(() => {
+  if (status === 'idle') dispatch(fetchRecipes());
+}, [dispatch, status]);
+```
+
+**Fetch when a value changes:**
+```jsx
+useEffect(() => {
+  dispatch(fetchSaved(user.id));
+}, [dispatch, user.id]);
+```
+
+**Two separate effects — do NOT combine unrelated fetches into one:**
+```jsx
+// Wrong — fetchSaved fires every time status changes
+useEffect(() => {
+  if (status === 'idle') dispatch(fetchRecipes());
+  dispatch(fetchSaved(user.id));
+}, [dispatch, status, user.id]);
+
+// Correct — each effect has its own concern
+useEffect(() => {
+  if (status === 'idle') dispatch(fetchRecipes());
+}, [dispatch, status]);
+
+useEffect(() => {
+  dispatch(fetchSaved(user.id));
+}, [dispatch, user.id]);
+```
+
+---
+
+## Conditional Rendering
+
+```jsx
+// Show loading text
+{status === 'loading' && <p>Loading...</p>}
+
+// Show error
+{status === 'failed' && <p style={{ color: 'red' }}>Error loading recipes.</p>}
+
+// Show component only if data exists
+{featured && <Banner recipe={featured} />}
+
+// Ternary — one of two things
+{isSaved ? 'Remove from Cookbook' : 'Save to Cookbook'}
+
+// Only show delete button to the recipe's author
+{recipe.addedBy === user.id && (
+  <button onClick={handleDelete}>Delete</button>
+)}
+
+// Search results vs category rows
+{search
+  ? <RecipeRow title="Results" recipes={filtered} />
+  : CATEGORIES.map(cat => <RecipeRow key={cat} title={cat} recipes={...} />)
+}
+```
+
+---
+
+## Key Files Quick Reference
+
+| File | What to look at |
+|---|---|
+| `src/context/AuthContext.js` | useReducer, LOGIN/LOGOUT/ERROR actions, localStorage, useContext |
+| `src/redux/recipesSlice.js` | createAsyncThunk, extraReducers, all three status cases, selectors |
+| `src/redux/store.js` | configureStore |
+| `src/App.js` | Full routing setup, Provider, AuthProvider, PublicRoute, PrivateRoute |
+| `src/components/PrivateRoute.js` | Outlet pattern — the professor's exact approach |
+| `src/pages/HomePage.js` | Two separate useEffects, useSelector, hero banner, category rows, search |
+| `src/pages/RecipeDetailPage.js` | useParams, derived state (isSaved), conditional delete button |
+| `src/pages/AddRecipePage.js` | Controlled form with field helper, textarea split into array |
+
+Good luck.

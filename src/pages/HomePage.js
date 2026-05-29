@@ -15,8 +15,11 @@ const HomePage = () => {
 
   useEffect(() => {
     if (status === 'idle') dispatch(fetchRecipes());
+  }, [dispatch, status]);
+
+  useEffect(() => {
     dispatch(fetchSaved(user.id));
-  }, [dispatch, status, user.id]);
+  }, [dispatch, user.id]);
 
   const featured = recipes.find(r => r.featured);
 
@@ -44,6 +47,7 @@ const HomePage = () => {
       />
 
       {status === 'loading' && <p>Loading recipes...</p>}
+      {status === 'failed'  && <p style={{ color: 'red' }}>Failed to load recipes. Is the API running?</p>}
 
       {/* Category rows — mirrors movies-app Row component structure */}
       {search

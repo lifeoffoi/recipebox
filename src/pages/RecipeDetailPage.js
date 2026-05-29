@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchRecipes, saveRecipe, unsaveRecipe, deleteRecipe, selectRecipeById, selectSaved } from '../redux/recipesSlice';
+import { fetchRecipes, fetchSaved, saveRecipe, unsaveRecipe, deleteRecipe, selectRecipeById, selectSaved, selectStatus } from '../redux/recipesSlice';
 import { useAuth } from '../context/AuthContext';
 
 const RecipeDetailPage = () => {
@@ -11,10 +11,15 @@ const RecipeDetailPage = () => {
   const { user }  = useAuth();
   const recipe    = useSelector(selectRecipeById(id));
   const saved     = useSelector(selectSaved);
+  const status    = useSelector(selectStatus);
 
   useEffect(() => {
-    dispatch(fetchRecipes());
-  }, [dispatch]);
+    if (status === 'idle') dispatch(fetchRecipes());
+  }, [dispatch, status]);
+
+  useEffect(() => {
+    dispatch(fetchSaved(user.id));
+  }, [dispatch, user.id]);
 
   if (!recipe) return <p style={{ padding: '1rem' }}>Loading...</p>;
 

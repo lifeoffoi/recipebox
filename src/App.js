@@ -11,6 +11,7 @@ import HomePage        from './pages/HomePage';
 import RecipeDetailPage from './pages/RecipeDetailPage';
 import AddRecipePage   from './pages/AddRecipePage';
 import SavedPage       from './pages/SavedPage';
+import NotFoundPage    from './pages/NotFoundPage';
 
 function App() {
   return (
@@ -32,6 +33,7 @@ function App() {
               <Route path="/add"          element={<AddRecipePage />} />
               <Route path="/saved"        element={<SavedPage />} />
             </Route>
+            <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </BrowserRouter>
       </AuthProvider>
