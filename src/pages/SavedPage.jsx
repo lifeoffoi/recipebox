@@ -20,15 +20,11 @@ const SavedPage = () => {
   );
 
   return (
-    <div style={{ padding: '1rem' }}>
+    <div className="saved-page">
       <h2>My Cookbook</h2>
       {savedRecipes.length === 0
-        ? <p style={{ color: '#888' }}>No saved recipes yet. Browse and save some!</p>
-        : (
-          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginTop: '1rem' }}>
-            {savedRecipes.map(r => <RecipeCard key={r.id} recipe={r} />)}
-          </div>
-        )
+        ? <p className="empty-text">No saved recipes yet. Browse and save some!</p>
+        : <div className="saved-grid">{savedRecipes.map(r => <RecipeCard key={r.id} recipe={r} />)}</div>
       }
     </div>
   );

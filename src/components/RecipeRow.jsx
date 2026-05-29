@@ -5,9 +5,9 @@ const RecipeRow = ({ title, recipes }) => {
   if (recipes.length === 0) return null;
 
   return (
-    <div style={{ marginBottom: '2rem' }}>
-      <h3 style={{ marginBottom: '0.5rem' }}>{title}</h3>
-      <div style={{ display: 'flex', gap: '1rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
+    <div className="category-section">
+      <h3 className="category-title">{title}</h3>
+      <div className="recipe-row">
         {recipes.map(recipe => (
           <RecipeCard key={recipe.id} recipe={recipe} />
         ))}

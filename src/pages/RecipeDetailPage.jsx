@@ -21,17 +21,14 @@ const RecipeDetailPage = () => {
     dispatch(fetchSaved(user.id));
   }, [dispatch, user.id]);
 
-  if (!recipe) return <p style={{ padding: '1rem' }}>Loading...</p>;
+  if (!recipe) return <p className="loading-text">Loading...</p>;
 
   const savedEntry = saved.find(s => s.recipeId === id && s.userId === user.id);
   const isSaved    = !!savedEntry;
 
   const handleSave = () => {
-    if (isSaved) {
-      dispatch(unsaveRecipe(savedEntry.id));
-    } else {
-      dispatch(saveRecipe({ userId: user.id, recipeId: id }));
-    }
+    if (isSaved) dispatch(unsaveRecipe(savedEntry.id));
+    else         dispatch(saveRecipe({ userId: user.id, recipeId: id }));
   };
 
   const handleDelete = async () => {
@@ -40,33 +37,31 @@ const RecipeDetailPage = () => {
   };
 
   return (
-    <div style={{ padding: '1rem', maxWidth: 700 }}>
-      <button onClick={() => navigate('/')} style={{ marginBottom: '1rem' }}>Back</button>
+    <div className="detail-page">
+      <button className="back-btn" onClick={() => navigate('/')}>Back</button>
 
-      <h2>{recipe.title}</h2>
-      <p style={{ color: '#666' }}>{recipe.description}</p>
-      <p><strong>Cook time:</strong> {recipe.cookTime} | <strong>Servings:</strong> {recipe.servings}</p>
+      <h2 className="detail-title">{recipe.title}</h2>
+      <p className="detail-desc">{recipe.description}</p>
+      <p className="detail-meta"><strong>Cook time:</strong> {recipe.cookTime} &nbsp;|&nbsp; <strong>Servings:</strong> {recipe.servings}</p>
 
-      <div style={{ display: 'flex', gap: '0.5rem', margin: '1rem 0' }}>
-        <button onClick={handleSave}>
+      <div className="detail-actions">
+        <button className="btn-secondary" onClick={handleSave}>
           {isSaved ? 'Remove from Cookbook' : 'Save to Cookbook'}
         </button>
         {recipe.addedBy === user.id && (
-          <button onClick={handleDelete} style={{ background: 'red', color: 'white' }}>
-            Delete Recipe
-          </button>
+          <button className="btn-danger" onClick={handleDelete}>Delete Recipe</button>
         )}
       </div>
 
-      <h3>Ingredients</h3>
-      <ul>
-        {recipe.ingredients.map((ing, i) => <li key={i}>{ing}</li>)}
-      </ul>
+      <div className="detail-section">
+        <h3>Ingredients</h3>
+        <ul>{recipe.ingredients.map((ing, i) => <li key={i}>{ing}</li>)}</ul>
+      </div>
 
-      <h3>Steps</h3>
-      <ol>
-        {recipe.steps.map((step, i) => <li key={i} style={{ marginBottom: '0.5rem' }}>{step}</li>)}
-      </ol>
+      <div className="detail-section">
+        <h3>Steps</h3>
+        <ol>{recipe.steps.map((step, i) => <li key={i}>{step}</li>)}</ol>
+      </div>
     </div>
   );
 };

@@ -28,26 +28,28 @@ const HomePage = () => {
     : recipes;
 
   return (
-    <div style={{ padding: '1rem' }}>
+    <div>
       {/* Hero banner — mirrors movies-app Banner component */}
       {featured && (
-        <div style={{ background: '#1a1a2e', color: '#fff', padding: '2rem', borderRadius: 8, marginBottom: '2rem' }}>
+        <div className="hero">
+          <span className="hero-tag">Featured Recipe</span>
           <h2>{featured.title}</h2>
-          <p style={{ maxWidth: 500, color: '#ccc' }}>{featured.description}</p>
-          <p style={{ color: '#aaa', fontSize: 14 }}>{featured.cookTime} • {featured.servings} servings</p>
+          <p>{featured.description}</p>
+          <p className="hero-meta">{featured.cookTime} &bull; {featured.servings} servings</p>
         </div>
       )}
 
       {/* Search */}
-      <input
-        placeholder="Search recipes..."
-        value={search}
-        onChange={e => setSearch(e.target.value)}
-        style={{ padding: '0.5rem', width: '100%', maxWidth: 400, marginBottom: '1.5rem', border: '1px solid #ccc', borderRadius: 6 }}
-      />
+      <div className="search-bar">
+        <input
+          placeholder="Search recipes..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+        />
+      </div>
 
-      {status === 'loading' && <p>Loading recipes...</p>}
-      {status === 'failed'  && <p style={{ color: 'red' }}>Failed to load recipes. Is the API running?</p>}
+      {status === 'loading' && <p className="loading-text">Loading recipes...</p>}
+      {status === 'failed'  && <p className="error-banner">Failed to load recipes. Is the API running?</p>}
 
       {/* Category rows — mirrors movies-app Row component structure */}
       {search
