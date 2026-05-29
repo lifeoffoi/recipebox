@@ -4,6 +4,50 @@ RecipeBox is a recipe discovery and cookbook app built with React, Redux Toolkit
 
 The app lets users log in, browse recipes by category, search recipes, view recipe details, save recipes to a personal cookbook, add new recipes, and delete recipes they created.
 
+## Create This App From Scratch
+
+If you need to recreate the project during practice or an exam, start with Create React App:
+
+```bash
+npx create-react-app recipebox
+cd recipebox
+```
+
+Install the app tools used in this project:
+
+```bash
+npm install @reduxjs/toolkit react-redux react-router-dom axios
+npm install --save-dev json-server
+```
+
+What each tool is for:
+
+| Tool | Why this app uses it |
+|---|---|
+| `@reduxjs/toolkit` | Creates the Redux slice, async thunks, reducers, and store setup. |
+| `react-redux` | Connects React components to Redux with `Provider`, `useSelector`, and `useDispatch`. |
+| `react-router-dom` | Handles routes, protected pages, URL params, links, and navigation. |
+| `axios` | Makes API requests to the mock backend. |
+| `json-server` | Runs `db.json` as a local REST API. |
+
+Add this script to `package.json` so the mock API can run on port `3001`:
+
+```json
+"api": "json-server --watch db.json --port 3001"
+```
+
+The final scripts section should include commands like these:
+
+```json
+"scripts": {
+  "start": "react-scripts start",
+  "api": "json-server --watch db.json --port 3001",
+  "build": "react-scripts build",
+  "test": "react-scripts test",
+  "eject": "react-scripts eject"
+}
+```
+
 ## How to Run
 
 Start the mock API:
